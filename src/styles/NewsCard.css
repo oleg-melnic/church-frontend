@@ -1,0 +1,16 @@
+.news-card-image {
+  transition: transform 0.3s ease-in-out;
+}
+
+.news-card-image:hover {
+  transform: scale(1.05);
+}
+
+.news-card-title {
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.news-card-title:hover {
+  color: #e53e3e;
+}
