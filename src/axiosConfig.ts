@@ -68,7 +68,7 @@ api.interceptors.response.use(
         }
 
         console.log('[Axios Response] Отправляем запрос на обновление токена с refreshToken:', refreshToken);
-        const refreshResponse = await axios.post(
+        const refreshResponse = await axios.post<{ accessToken: string }>(
           "http://localhost:3003/api/auth/refresh",
           { refreshToken }
         );
