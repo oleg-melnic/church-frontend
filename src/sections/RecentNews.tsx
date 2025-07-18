@@ -17,7 +17,7 @@ const RecentNews: React.FC = () => {
         const response = await api.get(`/api/news`, {
           params: { locale },
         });
-        setNews(response.data);
+        setNews(response.data.news);
       } catch (error) {
         console.error('Ошибка загрузки новостей:', error);
       } finally {
