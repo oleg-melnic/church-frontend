@@ -68,14 +68,11 @@ const EditAlbum: React.FC = () => {
     if (!isCheckingAuth && id) {
       const fetchAlbum = async () => {
         try {
-          const response = await api.get<Album,>(/api/gallery/albums/${id});
-          const albumData = response.data;
-          setAlbum(albumData);
-          setAlbumName(albumData.name);
-
+          const response = await api.get<Album>(`/api/gallery/albums/${id}`);
+  
           const ruTranslation = albumData.translations.find((trans: { locale: string }) => trans.locale === 'ru');
           const roTranslation = albumData.translations.find((trans: { locale: string }) => trans.locale === 'ro');
-
+  
           setTranslations({
             ru: { title: ruTranslation?.title || "" },
             ro: { title: roTranslation?.title || "" },
@@ -87,7 +84,7 @@ const EditAlbum: React.FC = () => {
           setIsLoading(false);
         }
       };
-
+  
       fetchAlbum();
     }
   }, [isCheckingAuth, id, t]);
