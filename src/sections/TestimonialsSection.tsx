@@ -26,7 +26,7 @@ function TestimonialCard({ image, name, role, quote, altText }: TestimonialCardP
           <p className="text-sm text-slate-500">{role}</p>
         </div>
       </div>
-      <blockquote className="text-base text-slate-600">"{quote}"</blockquote>
+      <blockquote className="text-base text-slate-600">&quot;{quote}&quot;</blockquote>
     </article>
   );
 }
