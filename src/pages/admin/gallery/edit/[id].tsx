@@ -68,7 +68,7 @@ const EditAlbum: React.FC = () => {
     if (!isCheckingAuth && id) {
       const fetchAlbum = async () => {
         try {
-          const response = await api.get<album>(<code>/api/gallery/albums/${id}</code>);</album>
+          const response = await api.get<Album,>(/api/gallery/albums/${id});
           const albumData = response.data;
           setAlbum(albumData);
           setAlbumName(albumData.name);
