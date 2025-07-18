@@ -7,7 +7,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow">
-        {children}  // Замена Outlet на children (контент страницы)
+        {children}  {/* Здесь был комментарий? Замените на такой стиль */}
       </main>
       <Footer />
     </div>
