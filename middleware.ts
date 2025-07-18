@@ -1,20 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { localeMiddleware } from './i18n';
+import createMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './i18n';  // Импортируйте из i18n.ts
 
-export async function middleware(request: NextRequest) {
-  const locale = await localeMiddleware(request);
-
-  const { pathname } = request.nextUrl;
-  const localeInPath = ['ru', 'ro'].some((loc) => pathname.startsWith(`/${loc}/`) || pathname === `/${loc}`);
-
-  if (!localeInPath) {
-    const newPath = `/${locale}${pathname === '/' ? '' : pathname}`;
-    return NextResponse.redirect(new URL(newPath, request.url));
-  }
-
-  return NextResponse.next();
-}
+export default createMiddleware({
+  locales,
+  defaultLocale,
+  localePrefix: 'always'  // Или 'always' для префиксов /ru/, /ro/; 'never' для скрытых
+});
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next|api|static|favicon.ico).*)']  // Исключить системные пути
 };
