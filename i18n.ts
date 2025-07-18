@@ -4,15 +4,14 @@ export const locales = ['ru', 'ro'] as const; // Поддерживаемые я
 export const defaultLocale = 'ru'; // Язык по умолчанию
 
 export default getRequestConfig(async ({ locale }) => {
-  // Валидация locale (опционально)
-  if (!locales.includes(locale as any)) {
-    locale = defaultLocale; // Исправляем на валидный
+  let resolvedLocale = locale || defaultLocale;
+
+  if (!locales.includes(resolvedLocale as typeof locales[number])) {
+    resolvedLocale = defaultLocale;
   }
 
-  const messages = (await import(`./messages/${locale}.json`)).default;
-
   return {
-    locale,  // Добавьте это — обязательно для RequestConfig
-    messages
+    locale: resolvedLocale,
+    messages: (await import(`./messages/${resolvedLocale}.json`)).default,
   };
 });
