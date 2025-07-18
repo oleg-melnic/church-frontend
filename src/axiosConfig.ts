@@ -19,9 +19,11 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("adminAccessToken");
+  const token = localStorage.getItem('token');
   console.log(`[Axios Request] URL: ${config.url}, Токен: ${token}`);
   if (token) {
+    // Инициализируем headers, если undefined
+    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`; // Восстанавливаем динамический токен
   } else {
     console.log('[Axios Request] Токен отсутствует');
