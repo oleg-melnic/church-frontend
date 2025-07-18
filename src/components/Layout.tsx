@@ -1,14 +1,13 @@
 import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import { Outlet } from 'react-router-dom';
 
-const Layout: React.FC = () => {
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow">
-        <Outlet />
+        {children}  // Замена Outlet на children (контент страницы)
       </main>
       <Footer />
     </div>
