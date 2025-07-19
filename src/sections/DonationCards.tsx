@@ -9,6 +9,16 @@ import { useTranslations } from 'next-intl';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || '');
 
+// Интерфейс для типов оплаты
+interface PaymentType {
+  value: string;
+  label: string;
+  isPaid: boolean;
+  amount?: number; // Опционально, так как не у всех есть фиксированная сумма
+  perName?: number; // Опционально, так как не у всех есть стоимость за имя
+  maxNames: number;
+}
+
 interface DonationFormProps {
   title: string;
   description: string;
@@ -26,10 +36,10 @@ const DonationForm: React.FC<DonationFormProps> = ({ title, description, icon, c
   const [success, setSuccess] = useState<string | null>(null);
   const stripe = useStripe();
 
-  const paymentTypes = t.raw('types') || [
+  const paymentTypes: PaymentType[] = t.raw('types') || [
     { value: "simple", label: "Простая (бесплатно)", isPaid: false, amount: 0, perName: 0, maxNames: Infinity },
     { value: "sorokoust", label: "Сорокауст", isPaid: true, perName: 100, maxNames: Infinity },
-    { value: "proskomedia", label: "Проскомидия", isPaid: true, perName: 0, amount: 50, maxNames: 10 },
+    { value: "proskomedia", label: "Проскомидия", isPaid: true, amount: 50, perName: 0, maxNames: 10 },
     { value: "proskomedia_40", label: "40 Проскомидий", isPaid: true, perName: 200, maxNames: Infinity },
     { value: "ekteneia", label: "Заказная ектения", isPaid: true, perName: 150, maxNames: Infinity },
   ];
@@ -42,7 +52,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ title, description, icon, c
   const nameCount = namesList.length;
 
   const getPaymentInfo = (type: string) => {
-    const selectedType = paymentTypes.find((t: { value: string }) => t.value === type);
+    const selectedType = paymentTypes.find((t: PaymentType) => t.value === type);
     if (!selectedType) return { isPaid: false, amount: 0, perName: 0, maxNames: Infinity, amountUsd: 0, amountEur: 0 };
 
     let amount = selectedType.amount || 0;
@@ -161,7 +171,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ title, description, icon, c
       if (err.response?.status === 401) {
         setError(t('authError') || 'Ошибка авторизации. Пожалуйста, обновите страницу и попробуйте снова.');
       } else if (err.response?.status === 500) {
-        setError(t('serverError') || 'Произошла ошибка на сервере. Пожалуйста, попробуйте позже или обратитесь к администратору.');
+        setError(t('serverError') || 'Произошла ошибка на сервера. Пожалуйста, попробуйте позже или обратитесь к администратору.');
       } else if (err.code === 'ERR_NETWORK') {
         setError(t('networkError') || 'Не удалось подключиться к серверу. Проверьте ваше интернет-соединение.');
       } else {
@@ -194,10 +204,10 @@ const DonationForm: React.FC<DonationFormProps> = ({ title, description, icon, c
           onChange={(e) => setType(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-700"
         >
-          {paymentTypes.map((option: { value: string; label: string }, index: number) => (
+          {paymentTypes.map((option: PaymentType, index: number) => (
             <option key={index} value={option.value}>
               {option.label}
-              {option.perName > 0 && ` (${option.perName} MDL за имя)`}
+              {option.perName !== undefined && option.perName > 0 && ` (${option.perName} MDL за имя)`}
             </option>
           ))}
         </select>

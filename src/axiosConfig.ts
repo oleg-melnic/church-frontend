@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios'; // Импортируем AxiosInstance явно
 
-const api = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: 'http://localhost:3003',
 });
 
@@ -22,9 +22,8 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   console.log(`[Axios Request] URL: ${config.url}, Токен: ${token}`);
   if (token) {
-    // Инициализируем headers, если undefined
     config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`; // Восстанавливаем динамический токен
+    config.headers.Authorization = `Bearer ${token}`;
   } else {
     console.log('[Axios Request] Токен отсутствует');
   }

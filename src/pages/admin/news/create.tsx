@@ -6,11 +6,28 @@ import { useTranslations, useLocale } from "next-intl";
 import api from '../../../axiosConfig';
 import Link from "next/link";
 
+interface Translation {
+  locale: string;
+  title: string;
+  description: string;
+  fullText: string;
+  category: string;
+  schedule: string[];
+  date: string;
+}
+
+interface FormData {
+  image: string;
+  isMain: boolean;
+  isActive: boolean;
+  translations: Translation[];
+}
+
 const CreateNews: React.FC = () => {
   const t = useTranslations("AdminNewsCreate");
   const locale = useLocale();
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     image: "",
     isMain: false,
     isActive: true,
@@ -22,13 +39,13 @@ const CreateNews: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Добавляем состояние для проверки авторизации
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("adminAccessToken");
       console.log('Проверка токена в create.tsx:', token);
-      if (!token || token === "undefined") { // Проверяем, что токен не равен "undefined"
+      if (!token || token === "undefined") {
         console.log('Токен отсутствует или некорректен, перенаправляем на /admin/login');
         router.push("/admin/login");
       }
@@ -53,7 +70,7 @@ const CreateNews: React.FC = () => {
     e: React.ChangeEvent<HTMLTextAreaElement>,
     lang: "ru" | "ro"
   ) => {
-    const schedule = e.target.value.split("\n").filter((line) => line.trim() !== "");
+    const schedule = e.target.value.split("\n").filter((line) => line.trim() !== "") as string[];
     const updatedTranslations = formData.translations.map((trans) =>
       trans.locale === lang ? { ...trans, schedule } : trans
     );
@@ -122,7 +139,6 @@ const CreateNews: React.FC = () => {
         </div>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Поле для загрузки изображения */}
           <div>
             <label htmlFor="image" className="block text-sm font-medium text-gray-700">
               {t("imageLabel") || "Изображение"}
@@ -160,7 +176,6 @@ const CreateNews: React.FC = () => {
             </div>
           </div>
 
-          {/* Поля для русского языка */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               {t("russianSection") || "Русский язык"}
@@ -244,7 +259,6 @@ const CreateNews: React.FC = () => {
             </div>
           </div>
 
-          {/* Поля для румынского языка */}
           <div className="border-t pt-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               {t("romanianSection") || "Румынский язык"}
@@ -328,7 +342,6 @@ const CreateNews: React.FC = () => {
             </div>
           </div>
 
-          {/* Кнопка отправки */}
           <button
             type="submit"
             disabled={isLoading}

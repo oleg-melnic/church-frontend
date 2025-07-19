@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import api from "../../../../axiosConfig";
 import Link from "next/link";
+import { AxiosProgressEvent } from 'axios';
 
 interface Album {
   id: number;
@@ -69,6 +70,9 @@ const EditAlbum: React.FC = () => {
       const fetchAlbum = async () => {
         try {
           const response = await api.get<Album>(`/api/gallery/albums/${id}`);
+          const albumData = response.data; // Объявляем и инициализируем здесь
+          setAlbum(albumData); // Устанавливаем состояние
+          setAlbumName(albumData.name); // Устанавливаем имя альбома
   
           const ruTranslation = albumData.translations.find((trans: { locale: string }) => trans.locale === 'ru');
           const roTranslation = albumData.translations.find((trans: { locale: string }) => trans.locale === 'ro');
@@ -103,17 +107,28 @@ const EditAlbum: React.FC = () => {
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      const newFiles = files.map(file => ({
-        file,
-        caption: "",
-        translations: [
-          { locale: 'ru', caption: "" },
-          { locale: 'ro', caption: "" },
-        ],
-        type: file.type.startsWith('image') ? 'photo' : 'video',
-        preview: URL.createObjectURL(file),
-        progress: 0,
-      }));
+      const newFiles = files.map(file => {
+        let fileType: 'photo' | 'video';
+        if (file.type.startsWith('image')) {
+          fileType = 'photo';
+        } else if (file.type.startsWith('video')) {
+          fileType = 'video';
+        } else {
+          throw new Error(`Unsupported file type: ${file.type}`);
+        }
+  
+        return {
+          file,
+          caption: "",
+          translations: [
+            { locale: 'ru', caption: "" },
+            { locale: 'ro', caption: "" },
+          ],
+          type: fileType, // Теперь строго 'photo' | 'video'
+          preview: URL.createObjectURL(file),
+          progress: 0,
+        };
+      });
       setNewImages(prev => [...prev, ...newFiles]);
     }
   };
@@ -152,18 +167,18 @@ const EditAlbum: React.FC = () => {
     }
     setError(null);
     setIsLoading(true);
-
+  
     try {
       const translationArray = [
         { locale: 'ru', title: translations.ru.title },
         { locale: 'ro', title: translations.ro.title },
       ].filter(trans => trans.title.trim());
-
-      const response = await api.patch(`/api/gallery/albums/${id}`, {
+  
+      const response = await api.patch<Album>(`/api/gallery/albums/${id}`, {
         name: albumName,
         translations: translationArray,
       });
-      setAlbum(response.data);
+      setAlbum(response.data); // Теперь TypeScript знает, что это Album
       router.push("/admin/gallery");
     } catch (err: any) {
       console.error("Ошибка при обновлении альбома:", err.response?.data || err.message);
@@ -185,47 +200,55 @@ const EditAlbum: React.FC = () => {
     try {
       const formData = new FormData();
       newImages.forEach(img => formData.append('files', img.file));
-  
-      const uploadResponse = await api.post('/api/gallery/upload/multiple', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          const total = progressEvent.total || 1;
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-          setNewImages(prev => prev.map(img => ({ ...img, progress: percentCompleted })));
-        },
-      });
-  
+    
+      const uploadResponse = await api.post<any>(
+        '/api/gallery/upload/multiple',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+            const total = progressEvent.total || 1;
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+            setNewImages(prev =>
+              prev.map(img => ({ ...img, progress: percentCompleted }))
+            );
+          },
+        }
+      );
+    
       const uploadedFiles = uploadResponse.data;
-  
-      const newImagesData = await Promise.all(uploadedFiles.map(async (file: { url: string; type: 'photo' | 'video' }, index: number) => {
-        const caption = newImages[index].caption.trim() || newImages[index].file.name;
-        const translations = newImages[index].translations
-          .filter(trans => trans.caption.trim())
-          .map(trans => ({
-            locale: trans.locale,
-            caption: trans.caption.trim(),
-          }));
-  
-        const response = await api.post(`/api/gallery/images`, {
-          albumId: parseInt(id as string, 10),
-          url: file.url,
-          caption,
-          type: file.type,
-          translations,
-        });
-  
-        const updatedImage = {
-          ...response.data,
-          url: file.url.startsWith('http') ? file.url : `http://localhost:3003${file.url}`,
-        };
-        console.log('Updated image URL:', updatedImage.url); // Добавляем отладку
-  
-        return updatedImage;
-      }));
-  
-      setAlbum((prev) => prev ? { ...prev, images: [...prev.images, ...newImagesData] } : null);
+    
+      const newImagesData = await Promise.all(
+        uploadedFiles.map(async (file: { url: string; type: 'photo' | 'video' }, index: number) => {
+          const caption = newImages[index].caption.trim() || newImages[index].file.name;
+          const translations = newImages[index].translations
+            .filter(trans => trans.caption.trim())
+            .map(trans => ({
+              locale: trans.locale,
+              caption: trans.caption.trim(),
+            }));
+    
+          const response = await api.post(`/api/gallery/images`, {
+            albumId: parseInt(id as string, 10),
+            url: file.url,
+            caption,
+            type: file.type,
+            translations,
+          });
+    
+          const updatedImage = {
+            ...response.data,
+            url: file.url.startsWith('http') ? file.url : `http://localhost:3003${file.url}`,
+          };
+          console.log('Updated image URL:', updatedImage.url);
+    
+          return updatedImage;
+        })
+      );
+    
+      setAlbum((prev) => (prev ? { ...prev, images: [...prev.images, ...newImagesData] } : null));
       setNewImages([]);
     } catch (err: any) {
       console.error("Ошибка при добавлении изображений:", err.response?.data || err.message);

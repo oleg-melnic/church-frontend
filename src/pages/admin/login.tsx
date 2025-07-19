@@ -14,8 +14,8 @@ const AdminLogin: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Работает с FormEvent
     console.log('Starting handleSubmit at 11:10 AM EEST, May 27, 2025');
 
     setIsSubmitting(true);

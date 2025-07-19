@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import axios from 'axios';
-import { motion } from 'framer-motion';
+import { motion, easeOut } from 'framer-motion'; // Импортируем easeOut
 
 interface Ktitor {
   id: number;
@@ -109,7 +109,7 @@ const KtitorSection: React.FC = () => {
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } }, // Используем easeOut как функцию
   };
 
   return (
